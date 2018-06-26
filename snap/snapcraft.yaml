@@ -1,0 +1,223 @@
+name: mame
+version: stable
+version-script: git -C parts/mame/build describe --tags
+summary: Multiple Arcade Machine Emulator (MAME)
+description: |
+ MAME is a hardware emulator. it faithfully reproduces the behaviour of
+ many arcade machines (it is not a simulation). This program is not a game
+ but can directly, through ROM images, run the complete system of these old
+ arcade machines. These ROMs are subject to copyright and it is in most of
+ the cases illegal to use them if you do not own the arcade machine.
+ .
+ This package provides the MAME binary and configuration files.
+
+confinement: strict
+grade: stable
+
+apps:
+  mame:
+    command: launch $SNAP/bin/pulsify-alsa $SNAP/mame
+    plugs:
+      - unity7
+      - network
+      - network-bind
+      - home
+      - opengl
+      - pulseaudio
+      - mount-observe
+      - optical-drive
+      - joystick
+      - screen-inhibit-control
+      - hardware-observe
+      - process-control
+
+parts:
+  alsa-lib:
+    plugin: autotools
+    source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-lib/alsa-lib_1.1.3.orig.tar.bz2
+    # source: ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.5.tar.bz2
+    configflags:
+    - --prefix=/usr
+    - --sysconfdir=/etc
+    - --libexec=/usr/lib
+    - --libdir=/usr/lib
+    - --localstatedir=/var
+    - --with-configdir=/snap/$SNAPCRAFT_PROJECT_NAME/current/usr/share/alsa
+    - --with-plugindir=/snap/$SNAPCRAFT_PROJECT_NAME/current/usr/lib/alsa-lib
+    - --disable-static
+    organize:
+      snap/*/current/usr/lib/*: usr/lib/
+    stage:
+    - usr/include
+    - usr/lib
+    prime:
+    - -usr/bin
+    - -usr/include
+    - -usr/lib/pkgconfig
+    - -usr/share/alsa/alsa.conf
+    - -usr/share/alsa/pcm
+    - -usr/share/alsa/topology/broadwell
+
+  alsa-plugins:
+    after: [alsa-lib]
+    plugin: autotools
+    source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-plugins/alsa-plugins_1.1.1.orig.tar.bz2
+    # source: ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.1.5.tar.bz2
+    configflags:
+    - --prefix=/usr
+    - --sysconfdir=/etc
+    - --libexec=/usr/lib
+    - --libdir=/usr/lib
+    - --localstatedir=/var
+    - --disable-oss
+    - --disable-usbstream
+    - --disable-arcamav
+    - --disable-avcodec
+    - --with-plugindir=/snap/$SNAPCRAFT_PROJECT_NAME/current/usr/lib/alsa-lib
+    - --disable-static
+    organize:
+      snap/*/current/usr/lib/*: usr/lib/
+    stage:
+    - usr/lib
+    - usr/share/alsa
+    build-packages:
+    - libpulse-dev
+    stage-packages:
+    - libpulse0
+
+  alsa:
+    plugin: nil
+    after: [alsa-plugins, alsa-lib]
+    prepare: |
+      cat > alsa.conf <<EOF
+      pcm.!default {
+        type pulse
+        fallback "sysdefault"
+        hint {
+          show on
+          description "Default ALSA Output (currently PulseAudio Sound Server)"
+        }
+      }
+
+      ctl.!default {
+        type pulse
+        fallback "sysdefault"
+      }
+      EOF
+
+      cat > pulsify-alsa <<EOF
+      #!/bin/bash
+      if [ "\$SNAP_ARCH" == "amd64" ]; then
+        ARCH="amd64-linux-gnu"
+      elif [ "\$SNAP_ARCH" == "armhf" ]; then
+        ARCH="arm-linux-gnueabihf"
+      elif [ "\$SNAP_ARCH" == "arm64" ]; then
+        ARCH="aarch64-linux-gnu"
+      else
+        ARCH="\$SNAP_ARCH-linux-gnu"
+      fi
+      export LD_LIBRARY_PATH="\$SNAP/usr/lib/alsa-lib:\$SNAP/usr/lib/\$ARCH/pulseaudio:\$LD_LIBRARY_PATH"
+      export ALSA_CONFIG_PATH="\$SNAP/etc/alsa.conf"
+      exec "\$@"
+      EOF
+    install: |
+      install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc alsa.conf
+      install -m755 -D -t $SNAPCRAFT_PART_INSTALL/bin pulsify-alsa
+  environment:
+    plugin: dump
+    source: .
+    organize:
+      launch: bin/launch
+      mame: bin/mame
+    stage:
+      - bin/launch
+      - bin/mame
+      - mame.ini
+  mame:
+    after: [alsa]
+    prepare: |
+      last_committed_tag="$(git describe --tags --abbrev=0)"
+      last_released_tag="$(snap info mame | awk '$1 == "beta:" { print $2 }')"
+      # If the latest tag from the upstream project has not been released to
+      # beta, build that tag instead of master.
+      if [ "${last_committed_tag}" != "${last_released_tag}" ]; then
+        git fetch
+        git checkout "${last_committed_tag}"
+        # XXX The snapcraft go plugin builds a link to the src dir, not to the
+        # build dir. That might be a bug, but let's better checkout both to be
+        # safe that we are not building the wrong thing. --elopio - 20171108
+        cd ../src
+        git checkout "${last_committed_tag}"
+      fi
+    plugin: make
+    source: https://github.com/mamedev/mame.git
+    source-type: git
+    build: |
+      export QT_SELECT=5
+      make
+    install: |
+      cp mame* $SNAPCRAFT_PART_INSTALL/mame
+    make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess"]
+    build-packages:
+      - gcc
+      - g++
+      - libexpat1-dev
+      - libflac-dev
+      - libfontconfig1-dev
+      - libjpeg-dev
+      - libportmidi-dev
+      - qtdeclarative5-dev
+      - qtbase5-dev
+      - libsdl2-ttf-dev
+      - libsdl2-dev
+      - libsqlite3-dev
+      - libxinerama-dev
+      - python-dev
+      - zlib1g-dev
+      - libqt5core5a
+    stage-packages:
+      - libass5
+      - libbluetooth3
+      - libbz2-1.0
+      - libc6
+      - libcdio13
+      - libcurl3
+      - libcrossguid0
+      - libdbus-1-3
+      - libdrm2
+      - libexpat1
+      - libfreetype6
+      - libfribidi0
+      - libgcc1
+      - libgl1-mesa-dri
+      - libgl1-mesa-glx
+      - libglew1.13
+      - libgmp10
+      - libjpeg8
+      - liblzma5
+      - liblzo2-2
+#      - libmpeg2-4
+      - libogg0
+      - libpcre3
+      - libpcrecpp0v5
+      - libpng12-0
+      - libpulse0
+      - libsdl2-2.0-0
+      - libssh-4
+      - libstdc++6
+      - libtag1v5
+      - libtiff5
+      - libtinyxml2.6.2v5
+      - libudev1
+      - libva-x11-1
+      - libva1
+      - libvorbis0a
+      - libvorbisenc2
+      - libvorbisfile3
+      - libx11-6
+      - libxext6
+      - libxml2
+      - libxrandr2
+      - libxslt1.1
+      - libyajl2
+      - zlib1g
