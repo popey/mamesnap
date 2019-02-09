@@ -14,9 +14,11 @@ install:
   - sudo /snap/bin/lxd waitready
   - sudo /snap/bin/lxd init --auto
   - mkdir -p "$TRAVIS_BUILD_DIR/snaps-cache"
+  - SNAPNAME=$(grep ^name snap/snapcraft.yaml | awk -F ':' '{ print $2}')
+  - echo $SNAPNAME
   - lxc launch ubuntu:16.04 snapcraft-mame
   - sleep 5
-  - lxc shell exec snapcraft-mame -- apt update -y
+  - /snap/bin/lxc shell exec snapcraft-mame -- apt update -y
 script:
   - export PATH=/snap/bin:$PATH
   - sudo SNAPCRAFT_BUILD_ENVIRONMENT=lxd snapcraft
