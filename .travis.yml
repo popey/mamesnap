@@ -17,7 +17,7 @@ install:
   - sudo /snap/bin/lxc launch ubuntu:16.04 snapcraft-mame
   - sleep 10
   - sudo /snap/bin/lxc list
-  - sudo /snap/bin/lxc shell exec snapcraft-mame -- apt update -y
+  - sudo /snap/bin/lxc exec snapcraft-mame -- apt update -y
 script:
   - export PATH=/snap/bin:$PATH
   - sudo SNAPCRAFT_BUILD_ENVIRONMENT=lxd snapcraft
