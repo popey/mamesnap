@@ -14,6 +14,9 @@ description: |
 confinement: strict
 grade: stable
 
+architectures:
+  - build-on: amd64
+
 apps:
   mame:
     command: desktop-launch $SNAP/bin/pulsify-alsa $SNAP/mame
