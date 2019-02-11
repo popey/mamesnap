@@ -16,7 +16,7 @@ grade: stable
 
 apps:
   mame:
-    command: launch $SNAP/bin/pulsify-alsa $SNAP/mame
+    command: desktop-launch $SNAP/bin/pulsify-alsa $SNAP/mame
     plugs:
       - unity7
       - network
@@ -127,14 +127,12 @@ parts:
     plugin: dump
     source: .
     organize:
-      launch: bin/launch
       mame: bin/mame
     stage:
-      - bin/launch
       - bin/mame
       - mame.ini
   mame:
-    after: [alsa]
+    after: [alsa, desktop-qt5]
     prepare: |
       last_committed_tag="$(git describe --tags --abbrev=0)"
       last_released_tag="$(snap info mame | awk '$1 == "beta:" { print $2 }')"
@@ -179,7 +177,6 @@ parts:
       - libass5
       - libbluetooth3
       - libbz2-1.0
-      - libc6
       - libcdio13
       - libcurl3
       - libcrossguid0
@@ -221,3 +218,28 @@ parts:
       - libxslt1.1
       - libyajl2
       - zlib1g
+  desktop-qt5:
+    build-packages:
+    - build-essential
+    - qtbase5-dev
+    - dpkg-dev
+    make-parameters:
+    - FLAVOR=qt5
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: qt
+    stage-packages:
+    - libxkbcommon0
+    - ttf-ubuntu-font-family
+    - dmz-cursor-theme
+    - light-themes
+    - adwaita-icon-theme
+    - gnome-themes-standard
+    - shared-mime-info
+    - libqt5gui5
+    - libgdk-pixbuf2.0-0
+    - libqt5svg5
+    - try:
+      - appmenu-qt5
+    - locales-all
+    - xdg-user-dirs
