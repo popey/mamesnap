@@ -31,6 +31,7 @@ apps:
       - optical-drive
       - joystick
       - screen-inhibit-control
+      - removable-media
       - hardware-observe
       - process-control
 
