@@ -14,8 +14,8 @@ description: |
 confinement: strict
 grade: stable
 
-architectures:
-  - build-on: amd64
+#architectures:
+#  - build-on: amd64
 
 apps:
   mame:
