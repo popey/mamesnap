@@ -10,12 +10,9 @@ description: |
  the cases illegal to use them if you do not own the arcade machine.
  .
  This package provides the MAME binary and configuration files.
-
+base: core
 confinement: strict
 grade: stable
-
-#architectures:
-#  - build-on: amd64
 
 apps:
   mame:
@@ -92,7 +89,8 @@ parts:
   alsa:
     plugin: nil
     after: [alsa-plugins, alsa-lib]
-    prepare: |
+    override-pull: |
+      snapcraftctl pull
       cat > alsa.conf <<EOF
       pcm.!default {
         type pulse
@@ -124,7 +122,8 @@ parts:
       export ALSA_CONFIG_PATH="\$SNAP/etc/alsa.conf"
       exec "\$@"
       EOF
-    install: |
+    override-build: |
+      snapcraftctl build
       install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc alsa.conf
       install -m755 -D -t $SNAPCRAFT_PART_INSTALL/bin pulsify-alsa
   environment:
@@ -137,7 +136,8 @@ parts:
       - mame.ini
   mame:
     after: [alsa, desktop-qt5]
-    prepare: |
+    override-pull: |
+      snapcraftctl pull
       last_committed_tag="$(git describe --tags --abbrev=0)"
       last_released_tag="$(snap info mame | awk '$1 == "beta:" { print $2 }')"
       # If the latest tag from the upstream project has not been released to
@@ -151,13 +151,14 @@ parts:
         cd ../src
         git checkout "${last_committed_tag}"
       fi
+      sed -i 's|#if HAVE_SSE|#if defined(HAVE_SSE)|g' 3rdparty/minimp3/minimp3.h
+      sed -i 's|#if HAVE_SIMD|#if defined(HAVE_SIMD)|g' 3rdparty/minimp3/minimp3.h
     plugin: make
     source: https://github.com/mamedev/mame.git
     source-type: git
-    build: |
+    override-build: |
       export QT_SELECT=5
       make
-    install: |
       cp mame* $SNAPCRAFT_PART_INSTALL/mame
     make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess"]
     build-packages:
