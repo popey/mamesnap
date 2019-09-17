@@ -10,7 +10,7 @@ description: |
  the cases illegal to use them if you do not own the arcade machine.
  .
  This package provides the MAME binary and configuration files.
-
+base: core16
 confinement: strict
 grade: stable
 
