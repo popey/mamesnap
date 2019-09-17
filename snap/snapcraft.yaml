@@ -122,7 +122,8 @@ parts:
       export ALSA_CONFIG_PATH="\$SNAP/etc/alsa.conf"
       exec "\$@"
       EOF
-    override-install: |
+    override-build: |
+      snapcraftctl build
       install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc alsa.conf
       install -m755 -D -t $SNAPCRAFT_PART_INSTALL/bin pulsify-alsa
   environment:
