@@ -151,14 +151,12 @@ parts:
         cd ../src
         git checkout "${last_committed_tag}"
       fi
-      sed -i 's|#if HAVE_SSE|#if defined(HAVE_SSE)|g' 3rdparty/minimp3/minimp3.h
-      sed -i 's|#if HAVE_SIMD|#if defined(HAVE_SIMD)|g' 3rdparty/minimp3/minimp3.h
     plugin: make
     source: https://github.com/mamedev/mame.git
     source-type: git
     override-build: |
       export QT_SELECT=5
-      make
+      make NOWERROR=1
       cp mame* $SNAPCRAFT_PART_INSTALL/mame
     make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess"]
     build-packages:
