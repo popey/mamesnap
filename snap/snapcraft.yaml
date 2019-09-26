@@ -203,6 +203,7 @@ parts:
       - libpng12-0
       - libpulse0
       - libsdl2-2.0-0
+      - libsdl2-ttf-2.0-0
       - libssh-4
       - libstdc++6
       - libtag1v5
