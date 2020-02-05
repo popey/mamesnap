@@ -1,6 +1,5 @@
 name: mame
-version: stable
-version-script: git -C parts/mame/build describe --tags
+adopt-info: mame
 summary: Multiple Arcade Machine Emulator (MAME)
 description: |
  MAME is a hardware emulator. it faithfully reproduces the behaviour of
@@ -10,7 +9,7 @@ description: |
  the cases illegal to use them if you do not own the arcade machine.
  .
  This package provides the MAME binary and configuration files.
-base: core
+base: core18
 confinement: strict
 grade: stable
 
@@ -158,10 +157,11 @@ parts:
       export QT_SELECT=5
       make NOWERROR=1
       cp mame* $SNAPCRAFT_PART_INSTALL/mame
+      snapcraftctl set-version $(git -C ../src describe --tags)
     make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess"]
     build-packages:
-      - gcc
-      - g++
+      - gcc-7
+      - g++-7
       - libexpat1-dev
       - libflac-dev
       - libfontconfig1-dev
@@ -177,10 +177,10 @@ parts:
       - zlib1g-dev
       - libqt5core5a
     stage-packages:
-      - libass5
+      - libass9
       - libbluetooth3
       - libbz2-1.0
-      - libcdio13
+      - libcdio17
       - libcurl3
       - libcrossguid0
       - libdbus-1-3
@@ -191,7 +191,7 @@ parts:
       - libgcc1
       - libgl1-mesa-dri
       - libgl1-mesa-glx
-      - libglew1.13
+      - libglew2.0
       - libgmp10
       - libjpeg8
       - liblzma5
@@ -200,7 +200,7 @@ parts:
       - libogg0
       - libpcre3
       - libpcrecpp0v5
-      - libpng12-0
+      - libpng16-16
       - libpulse0
       - libsdl2-2.0-0
       - libsdl2-ttf-2.0-0
@@ -210,8 +210,8 @@ parts:
       - libtiff5
       - libtinyxml2.6.2v5
       - libudev1
-      - libva-x11-1
-      - libva1
+      - libva-x11-2
+      - libva2
       - libvorbis0a
       - libvorbisenc2
       - libvorbisfile3
