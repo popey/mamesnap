@@ -15,7 +15,8 @@ grade: stable
 
 apps:
   mame:
-    command: desktop-launch $SNAP/bin/pulsify-alsa $SNAP/mame
+    command: $SNAP/bin/pulsify-alsa $SNAP/mame
+    extensions: [kde-neon]
     plugs:
       - unity7
       - network
@@ -35,7 +36,6 @@ parts:
   alsa-lib:
     plugin: autotools
     source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-lib/alsa-lib_1.1.3.orig.tar.bz2
-    # source: ftp://ftp.alsa-project.org/pub/lib/alsa-lib-1.1.5.tar.bz2
     configflags:
     - --prefix=/usr
     - --sysconfdir=/etc
@@ -62,7 +62,6 @@ parts:
     after: [alsa-lib]
     plugin: autotools
     source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-plugins/alsa-plugins_1.1.1.orig.tar.bz2
-    # source: ftp://ftp.alsa-project.org/pub/plugins/alsa-plugins-1.1.5.tar.bz2
     configflags:
     - --prefix=/usr
     - --sysconfdir=/etc
@@ -134,7 +133,7 @@ parts:
       - bin/mame
       - mame.ini
   mame:
-    after: [alsa, desktop-qt5]
+    after: [alsa]
     override-pull: |
       snapcraftctl pull
       last_committed_tag="$(git describe --tags --abbrev=0)"
@@ -222,28 +221,3 @@ parts:
       - libxslt1.1
       - libyajl2
       - zlib1g
-  desktop-qt5:
-    build-packages:
-    - build-essential
-    - qtbase5-dev
-    - dpkg-dev
-    make-parameters:
-    - FLAVOR=qt5
-    plugin: make
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: qt
-    stage-packages:
-    - libxkbcommon0
-    - ttf-ubuntu-font-family
-    - dmz-cursor-theme
-    - light-themes
-    - adwaita-icon-theme
-    - gnome-themes-standard
-    - shared-mime-info
-    - libqt5gui5
-    - libgdk-pixbuf2.0-0
-    - libqt5svg5
-    - try:
-      - appmenu-qt5
-    - locales-all
-    - xdg-user-dirs
