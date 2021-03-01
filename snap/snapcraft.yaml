@@ -12,7 +12,7 @@ description: |
 base: core18
 confinement: strict
 grade: stable
-
+compression: lzo
 apps:
   mame:
     command: $SNAP/bin/pulsify-alsa $SNAP/mame
