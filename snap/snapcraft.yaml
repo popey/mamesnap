@@ -9,14 +9,15 @@ description: |
  the cases illegal to use them if you do not own the arcade machine.
  .
  This package provides the MAME binary and configuration files.
-base: core18
+base: core20
 confinement: strict
 grade: stable
 compression: lzo
 apps:
   mame:
-    command: $SNAP/bin/pulsify-alsa $SNAP/mame
-    extensions: [kde-neon]
+    command: bin/desktop-launch $SNAP/bin/pulsify-alsa $SNAP/mame
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio
     plugs:
       - unity7
       - network
@@ -33,10 +34,18 @@ apps:
       - process-control
 
 parts:
+  desktop-glib-only:  
+    build-packages:   
+      - libglib2.0-dev
+    plugin: make
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: glib-only
+    stage-packages:
+      - libglib2.0-bin
   alsa-lib:
     plugin: autotools
     source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-lib/alsa-lib_1.1.3.orig.tar.bz2
-    configflags:
+    autotools-configure-parameters:
     - --prefix=/usr
     - --sysconfdir=/etc
     - --libexec=/usr/lib
@@ -62,7 +71,7 @@ parts:
     after: [alsa-lib]
     plugin: autotools
     source: http://archive.ubuntu.com/ubuntu/pool/main/a/alsa-plugins/alsa-plugins_1.1.1.orig.tar.bz2
-    configflags:
+    autotools-configure-parameters:
     - --prefix=/usr
     - --sysconfdir=/etc
     - --libexec=/usr/lib
@@ -179,8 +188,8 @@ parts:
       - libass9
       - libbluetooth3
       - libbz2-1.0
-      - libcdio17
-      - libcurl3
+      - libcdio18
+      - libcurl4
       - libcrossguid0
       - libdbus-1-3
       - libdrm2
@@ -190,7 +199,7 @@ parts:
       - libgcc1
       - libgl1-mesa-dri
       - libgl1-mesa-glx
-      - libglew2.0
+      - libglew2.1
       - libgmp10
       - libjpeg8
       - liblzma5
@@ -221,3 +230,8 @@ parts:
       - libxslt1.1
       - libyajl2
       - zlib1g
+      - libdouble-conversion3
+      - libpcre2-16-0
+      - libqt5core5a
+      - libqt5gui5
+      - libqt5widgets5
