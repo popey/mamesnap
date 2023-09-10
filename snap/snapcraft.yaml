@@ -10,6 +10,11 @@ description: |
  .
  This package provides the MAME binary and configuration files.
 base: core20
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: s390x
+  - build-on: armhf
 confinement: strict
 grade: stable
 compression: lzo
