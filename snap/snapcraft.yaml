@@ -168,13 +168,13 @@ parts:
     source-type: git
     override-build: |
       export QT_SELECT=5
-      make NOWERROR=1
+      make CC=gcc-10 CXX=g++-10 NOWERROR=1
       cp mame* $SNAPCRAFT_PART_INSTALL/mame
       snapcraftctl set-version $(git -C ../src describe --tags)
     make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess"]
     build-packages:
-      - gcc-7
-      - g++-7
+      - gcc-10
+      - g++-10
       - libexpat1-dev
       - libflac-dev
       - libfontconfig1-dev
