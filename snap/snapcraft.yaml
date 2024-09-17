@@ -1,5 +1,5 @@
 name: mame
-version: "mame0267"
+version: "mame0269"
 summary: Multiple Arcade Machine Emulator (MAME)
 description: |
  MAME is a hardware emulator. it faithfully reproduces the behaviour of
@@ -19,9 +19,12 @@ grade: stable
 compression: lzo
 apps:
   mame:
+    command-chain:
+      - snap/command-chain/alsa-launch
     extensions: [gnome]
-    command: $SNAP/mame
+    command: mame
     plugs:
+      - alsa
       - unity7
       - network
       - network-bind
@@ -37,7 +40,65 @@ apps:
       - process-control
 
 parts:
+  alsa-mixin:
+    plugin: nil
+    source: https://github.com/diddlesnaps/snapcraft-alsa.git
+    override-pull: |
+      cat > asound.conf <<EOF
+      pcm.!default {
+          type pulse
+          fallback "sysdefault"
+          hint {
+              show on
+              description "Default ALSA Output (currently PulseAudio Sound Server)"
+          }
+      }
+      ctl.!default {
+          type pulse
+          fallback "sysdefault"
+      }
+      seq.default {
+          type hw
+      }
+      seq.hw {
+          type hw
+      }
+      EOF
+      cat > alsa-launch <<EOF
+      #!/bin/bash
+      export ALSA_CONFIG_PATH="\$SNAP/etc/asound.conf"
+
+      if [ -d "\$SNAP/usr/lib/alsa-lib" ]; then
+          export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:\$SNAP/usr/lib/alsa-lib"
+      elif [ -d "\$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib" ]; then
+          export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:\$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/alsa-lib"
+      fi
+      export LD_LIBRARY_PATH="\$LD_LIBRARY_PATH:\$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pulseaudio"
+
+      # Make PulseAudio socket available inside the snap-specific \$XDG_RUNTIME_DIR
+      if [ -n "\$XDG_RUNTIME_DIR" ]; then
+          pulsenative="pulse/native"
+          pulseaudio_sockpath="\$XDG_RUNTIME_DIR/../\$pulsenative"
+          if [ -S "\$pulseaudio_sockpath" ]; then
+              export PULSE_SERVER="unix:\${pulseaudio_sockpath}"
+          fi
+      fi
+
+      exec "\$@"
+      EOF
+      chmod +x alsa-launch
+    override-build: |
+      snapcraftctl build
+      install -m644 -D -t $SNAPCRAFT_PART_INSTALL/etc asound.conf
+      install -m755 -D -t $SNAPCRAFT_PART_INSTALL/snap/command-chain alsa-launch
+    build-packages:
+      - libasound2-dev
+    stage-packages:
+      - libasound2
+      - libasound2-plugins
+      - inotify-tools
   mame:
+    after: [alsa-mixin]
     plugin: make
     source: https://github.com/mamedev/mame.git
     source-tag: $SNAPCRAFT_PROJECT_VERSION
@@ -47,7 +108,7 @@ parts:
       export QT_SELECT="5"
       export CFLAGS+="-fpch-preprocess"
       export CXXFLAGS+="-fpch-preprocess"
-      make NOWERROR='1' OPTIMIZE='2' TOOLS='1'
+      make NOWERROR='1' OPTIMIZE='2' TOOLS='1' -j$((`nproc`+1))
       install -D -m755 mame $SNAPCRAFT_PART_INSTALL/mame
     build-packages:
       - gcc-10
