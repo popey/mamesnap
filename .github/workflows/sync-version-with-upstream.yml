@@ -70,26 +70,4 @@ jobs:
 
 
 
-
-
-
-
-
-jobs:
-  sync:
-    name: 🔄 Sync version with upstream
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🔄 Sync version with upstream
-        uses: snapcrafters/ci/sync-version@main
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: master
-          bot-email: alan@popey.com
-          bot-name: popeybot
-          update-script: |
-            VERSION=$(
-              curl -sL https://api.github.com/repos/mamedev/mame/releases |
-              jq .  | grep tag_name | grep -v beta | head -n 1 | cut -d'"' -f4
-            )
-            sed -i 's/^\(version: \).*$/\1'\"$VERSION\"'/' snap/snapcraft.yaml
+"'/' snap/snapcraft.yaml
