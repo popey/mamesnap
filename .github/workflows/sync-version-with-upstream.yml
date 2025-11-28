@@ -67,7 +67,3 @@ jobs:
             [upstream release](https://github.com/mamedev/mame/releases/tag/${{ steps.latest.outputs.version }})
           branch: auto-update-${{ steps.latest.outputs.version }}
           delete-branch: true
-
-
-
-"'/' snap/snapcraft.yaml
