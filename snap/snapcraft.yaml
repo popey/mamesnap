@@ -1,5 +1,5 @@
 name: mame
-version: 'mame0284'
+version: ''
 summary: Multiple Arcade Machine Emulator (MAME)
 description: |
  MAME is a hardware emulator. it faithfully reproduces the behaviour of
