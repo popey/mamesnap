@@ -10,6 +10,23 @@ description: |
  .
  This package provides the MAME binary and configuration files.
 base: core22
+
+plugs:
+  graphics-core22:
+    interface: content
+    target: $SNAP/graphics
+    default-provider: mesa-core22
+
+layout:
+  /usr/share/libdrm:
+    bind: $SNAP/graphics/libdrm
+  /usr/share/drirc.d:
+    symlink: $SNAP/graphics/drirc.d
+  /usr/share/X11/XErrorDB:
+    symlink: $SNAP/graphics/X11/XErrorDB
+  /usr/share/X11/locale:
+    symlink: $SNAP/graphics/X11/locale
+
 architectures:
   - build-on: amd64
   - build-on: arm64
@@ -20,6 +37,7 @@ apps:
   mame:
     command-chain:
       - snap/command-chain/alsa-launch
+      - bin/graphics-core22-wrapper
     extensions: [gnome]
     command: mame
     plugs:
@@ -145,8 +163,6 @@ parts:
       - libfreetype6
       - libfribidi0
       - libgcc1
-      - libgl1-mesa-dri
-      - libgl1-mesa-glx
       - libglew2.2
       - libgmp10
       - libjpeg8
@@ -183,3 +199,13 @@ parts:
       - libqt5core5a
       - libqt5gui5
       - libqt5widgets5
+
+  graphics-core22:
+    after: [mame]
+    source: https://github.com/canonical/gpu-snap.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/graphics-core22-cleanup mesa-core22 nvidia-core22
+    prime:
+      - bin/graphics-core22-wrapper
