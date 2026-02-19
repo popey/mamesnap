@@ -1,9 +1,8 @@
-name: Sync version with upstream
+name: 🔄 Sync version with upstream
 
 on:
   schedule:
-    # Run every 6 hours
-    - cron: '0 */6 * * *'
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 permissions:
@@ -22,24 +21,23 @@ jobs:
       - name: Get latest version from upstream
         id: latest
         run: |
-          LATEST_VERSION=$(curl -sL https://api.github.com/repos/mamedev/mame/releases | jq .  | grep tag_name | grep -v beta | head -n 1 | cut -d'"' -f4)
+          LATEST_VERSION=$(curl -sL https://api.github.com/repos/mamedev/mame/releases/latest | jq -r '.tag_name')
           echo "version=$LATEST_VERSION" >> $GITHUB_OUTPUT
-          echo "Latest version on upstream repo: $LATEST_VERSION"
-
+          echo "Latest upstream version: $LATEST_VERSION"
 
       - name: Get current version from snapcraft.yaml
         id: current
         run: |
-          CURRENT_VERSION=$(grep "^version:" snap/snapcraft.yaml | sed "s/version: '\(.*\)'/\1/")
+          CURRENT_VERSION=$(grep "^version:" snap/snapcraft.yaml | head -1 | sed "s/version: *['\"]\{0,1\}\(.*\)['\"]\{0,1\}/\1/" | sed "s/['\"]//g")
           echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
-          echo "Current version in snap: $CURRENT_VERSION"
+          echo "Current snap version: $CURRENT_VERSION"
 
       - name: Compare versions
         id: compare
         run: |
           if [ "${{ steps.latest.outputs.version }}" != "${{ steps.current.outputs.version }}" ]; then
             echo "needs_update=true" >> $GITHUB_OUTPUT
-            echo "Version mismatch detected - update needed"
+            echo "Version mismatch - update needed"
           else
             echo "needs_update=false" >> $GITHUB_OUTPUT
             echo "Versions match - no update needed"
@@ -49,21 +47,20 @@ jobs:
         if: steps.compare.outputs.needs_update == 'true'
         run: |
           sed -i "s/^version: .*/version: '${{ steps.latest.outputs.version }}'/" snap/snapcraft.yaml
-          echo "Updated snap/snapcraft.yaml to version ${{ steps.latest.outputs.version }}"
 
       - name: Create Pull Request
         if: steps.compare.outputs.needs_update == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Update to version ${{ steps.latest.outputs.version }}"
-          title: "Update to version ${{ steps.latest.outputs.version }}"
+          commit-message: "Update to ${{ steps.latest.outputs.version }}"
+          title: "Update to ${{ steps.latest.outputs.version }}"
           body: |
-            Automated version update from upstream repo.
+            Automated version update from upstream.
 
-            - Previous version: `${{ steps.current.outputs.version }}`
-            - New version: `${{ steps.latest.outputs.version }}`
+            - Previous: `${{ steps.current.outputs.version }}`
+            - New: `${{ steps.latest.outputs.version }}`
 
-            [upstream release](https://github.com/mamedev/mame/releases/tag/${{ steps.latest.outputs.version }})
+            [Upstream release](https://github.com/mamedev/mame/releases/tag/${{ steps.latest.outputs.version }})
           branch: auto-update-${{ steps.latest.outputs.version }}
           delete-branch: true
