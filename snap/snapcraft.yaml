@@ -122,7 +122,7 @@ parts:
     source-type: git
     #make-parameters:  [CFLAGS="-fpch-preprocess", CXXFLAGS="-fpch-preprocess", CC="gcc-10", CXX="g++-10"]
     override-build: |
-      export QT_SELECT="5"
+      export QT_SELECT="6"
       export CFLAGS+="-fpch-preprocess"
       export CXXFLAGS+="-fpch-preprocess"
       make NOWERROR='1' OPTIMIZE='2' TOOLS='1' -j$((`nproc`+1))
@@ -136,8 +136,8 @@ parts:
       - libjpeg-dev
       - libpugixml-dev
       - libportmidi-dev
-      - qtdeclarative5-dev
-      - qtbase5-dev
+      - qt6-base-dev
+      - qt6-base-dev-tools
       - libsdl2-ttf-dev
       - libsdl2-dev
       - libutf8proc-dev
@@ -147,7 +147,7 @@ parts:
       - python3-dev
       - rapidjson-dev
       - zlib1g-dev
-      - libqt5core5a
+      - libqt6core6
       - libasio-dev
       - libglm-dev
     stage-packages:
@@ -196,9 +196,11 @@ parts:
       - zlib1g
       - libdouble-conversion3
       - libpcre2-16-0
-      - libqt5core5a
-      - libqt5gui5
-      - libqt5widgets5
+      - libqt6core6
+      - libqt6dbus6
+      - libqt6gui6
+      - libqt6network6
+      - libqt6widgets6
 
   graphics-core22:
     after: [mame]
