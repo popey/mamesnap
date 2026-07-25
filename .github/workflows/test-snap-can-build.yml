@@ -13,8 +13,16 @@ permissions:
 
 jobs:
   build:
-    name: Build snap
-    runs-on: ubuntu-latest
+    name: Build snap (${{ matrix.architecture }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - architecture: amd64
+            runner: ubuntu-24.04
+          - architecture: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - name: Checkout code
@@ -37,7 +45,7 @@ jobs:
       - name: Upload snap artifact
         uses: actions/upload-artifact@v4
         with:
-          name: snap
+          name: snap-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}
           retention-days: 7
 
@@ -53,7 +61,7 @@ jobs:
       - name: Download snap artifact
         uses: actions/download-artifact@v4
         with:
-          name: snap
+          name: snap-amd64
 
       - name: Enable KVM
         run: |

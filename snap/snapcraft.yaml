@@ -125,9 +125,16 @@ parts:
       export QT_SELECT="6"
       export CFLAGS+="-fpch-preprocess"
       export CXXFLAGS+="-fpch-preprocess"
-      make NOWERROR='1' OPTIMIZE='2' TOOLS='1' -j$((`nproc`+1))
+      make_args=()
+      if [ "${CRAFT_ARCH_BUILD_FOR:-${SNAPCRAFT_TARGET_ARCH:-}}" = "arm64" ]; then
+        # LINK_WITH_GOLD was removed upstream; ARCHOPTS is passed to both the
+        # compiler and linker, so this explicitly selects gold for the link.
+        make_args+=(ARCHOPTS="-fuse-ld=gold")
+      fi
+      make NOWERROR='1' OPTIMIZE='2' TOOLS='1' -j$((`nproc`+1)) "${make_args[@]}"
       install -D -m755 mame $SNAPCRAFT_PART_INSTALL/mame
     build-packages:
+      - binutils-gold
       - gcc-10
       - g++-10
       - libexpat1-dev
