@@ -131,7 +131,8 @@ parts:
         # compiler and linker, so this explicitly selects gold for the link.
         make_args+=(ARCHOPTS="-fuse-ld=gold")
       fi
-      make NOWERROR='1' OPTIMIZE='2' TOOLS='1' -j$((`nproc`+1)) "${make_args[@]}"
+      # Only the emulator is installed; avoid building unused ancillary tools.
+      make NOWERROR='1' OPTIMIZE='2' TOOLS='0' -j$((`nproc`+1)) "${make_args[@]}"
       install -D -m755 mame $SNAPCRAFT_PART_INSTALL/mame
     build-packages:
       - binutils-gold
